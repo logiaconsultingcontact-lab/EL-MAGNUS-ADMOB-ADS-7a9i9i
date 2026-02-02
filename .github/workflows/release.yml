@@ -1,0 +1,203 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Another IPTV Player ${{ github.ref_name }}
+          body: |
+            ## 🎉 New Release: ${{ github.ref_name }}
+            
+            ### 📺 Another IPTV Player
+            A modern, cross-platform IPTV player application built with Flutter.
+            
+            ### 📱 Supported Platforms
+            - ✅ Windows (x64)
+            - ✅ macOS (Universal)
+            - ✅ Linux (x64)
+            - ✅ Android (APK)
+            - ✅ iOS (No Codesign)
+            
+            ### 📥 Downloads
+            Download the appropriate version for your platform below.
+            
+            ### 🔧 Installation
+            - **Windows**: Extract zip and run `another_iptv_player.exe`
+            - **macOS**: Extract zip and run `another_iptv_player.app`
+            - **Linux**: Extract zip and run `another_iptv_player`
+            - **Android**: Install the APK file
+            - **iOS**: Requires developer account for installation
+            
+            ### 🔄 Auto-generated from CI/CD
+            This release was automatically created with artifacts from our build pipeline.
+          draft: false
+          prerelease: false
+          generateReleaseNotes: false
+          makeLatest: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate files
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - name: Build Windows
+        run: flutter build windows
+      - name: Create Windows Archive
+        run: |
+          cd build/windows/x64/runner/Release
+          7z a ../../../../../another-iptv-player-windows-${{ github.ref_name }}.zip .
+      - name: Upload Windows Release Asset
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: another-iptv-player-windows-${{ github.ref_name }}.zip
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+#  build-macos:
+#    needs: create-release
+#    runs-on: macos-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: subosito/flutter-action@v2
+#        with:
+#          flutter-version: '3.35.7'
+#          channel: 'stable'
+#      - name: Install dependencies
+#        run: flutter pub get
+#      - name: Generate files
+#        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+#      - name: Build macOS
+#        run: flutter build macos
+#      - name: Create macOS Archive
+#        run: |
+#          cd build/macos/Build/Products/Release
+#          zip -r ../../../../../another-iptv-player-macos-${{ github.ref_name }}.zip .
+#      - name: Upload macOS Release Asset
+#        uses: ncipollo/release-action@v1
+#        with:
+#          tag: ${{ github.ref_name }}
+#          artifacts: another-iptv-player-macos-${{ github.ref_name }}.zip
+#          allowUpdates: true
+#          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libasound2-dev libpulse-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+            libunwind-dev libmpv-dev mpv libavcodec-dev libavformat-dev libavutil-dev \
+            libswscale-dev libavfilter-dev libavdevice-dev libswresample-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate files
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - name: Build Linux
+        run: flutter build linux
+      - name: Create Linux Archive
+        run: |
+          cd build/linux/x64/release/bundle
+          zip -r ../../../../../another-iptv-player-linux-${{ github.ref_name }}.zip .
+      - name: Upload Linux Release Asset
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: another-iptv-player-linux-${{ github.ref_name }}.zip
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate files
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - name: Build Android APK
+        run: flutter build apk --build-name=releaseUnsigned
+      - name: Rename APK to standard format
+        run: cp build/app/outputs/flutter-apk/app-release.apk another-iptv-player-android-${{ github.ref_name }}.apk
+      - name: Upload Android Asset
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: another-iptv-player-android-${{ github.ref_name }}.apk
+          allowUpdates: true
+          omitBodyDuringUpdate: true
+          omitNameDuringUpdate: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ios:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: 'stable'
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Generate files
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - name: Install CocoaPods
+        run: sudo gem install cocoapods
+      - name: Install iOS dependencies
+        run: cd ios && pod install
+      - name: Build iOS
+        run: flutter build ios --no-codesign
+      - name: Create iOS Archive
+        run: |
+          cd build/ios/iphoneos
+          zip -r ../../../another-iptv-player-ios-${{ github.ref_name }}.zip .
+      - name: Upload iOS Release Asset
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          artifacts: another-iptv-player-ios-${{ github.ref_name }}.zip
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
