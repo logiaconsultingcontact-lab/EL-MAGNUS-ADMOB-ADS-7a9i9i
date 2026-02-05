@@ -9,31 +9,35 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - uses: subosito/flutter-action@v2
-      with:
-        channel: stable
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
 
-    - run: flutter pub get
-    - run: flutter build windows
+      - name: Get dependencies
+        run: flutter pub get
 
-    - name: Decode certificate
-      shell: powershell
-      run: |
-        echo "${{ secrets.WINDOWS_CERT }}" > cert.b64
-        certutil -decode cert.b64 elmagnus.pfx
+      - name: Build Windows
+        run: flutter build windows
 
-    - run: dart run msix:create --no-install-cert --password ${{ secrets.CERT_PASSWORD }}
-      env:
-        MSIX_CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+      - name: Decode certificate
+        shell: powershell
+        run: |
+          echo "${{ secrets.WINDOWS_CERT }}" > cert.b64
+          certutil -decode cert.b64 elmagnus.pfx
 
-    - uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
-      with:
-        upload_url: ${{ github.event.release.upload_url }}
-        asset_path: build/windows/runner/Release/*.msix
-        asset_name: EL-MAGNUS.msix
-        asset_content_type: application/octet-stream
+      - name: Build MSIX
+        run: dart run msix:create --no-install-cert
+        env:
+          MSIX_CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
+      - name: Upload MSIX to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: build/windows/runner/Release/*.msix
+          asset_name: EL-MAGNUS.msix
+          asset_content_type: application/octet-stream
