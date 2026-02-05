@@ -1,7 +1,7 @@
-import 'package:another_iptv_player/screens/m3u/m3u_home_screen.dart';
+import 'package:ELMAGNUS/screens/m3u/m3u_home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/repositories/user_preferences.dart';
-import 'package:another_iptv_player/services/app_state.dart';
+import 'package:ELMAGNUS/repositories/user_preferences.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
 import '../models/playlist_model.dart';
 import '../screens/xtream-codes/xtream_code_home_screen.dart';
 import '../services/playlist_service.dart';

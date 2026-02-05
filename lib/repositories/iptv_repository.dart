@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:drift/drift.dart' as drift;
 import 'package:http/http.dart' as http;
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/api_configuration_model.dart';
-import 'package:another_iptv_player/models/api_response.dart';
-import 'package:another_iptv_player/models/category.dart';
-import 'package:another_iptv_player/models/live_stream.dart';
-import 'package:another_iptv_player/models/series_response.dart';
-import 'package:another_iptv_player/models/vod_streams.dart';
-import 'package:another_iptv_player/models/series.dart';
-import 'package:another_iptv_player/utils/type_convertions.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/api_configuration_model.dart';
+import 'package:ELMAGNUS/models/api_response.dart';
+import 'package:ELMAGNUS/models/category.dart';
+import 'package:ELMAGNUS/models/live_stream.dart';
+import 'package:ELMAGNUS/models/series_response.dart';
+import 'package:ELMAGNUS/models/vod_streams.dart';
+import 'package:ELMAGNUS/models/series.dart';
+import 'package:ELMAGNUS/utils/type_convertions.dart';
 import '../models/category_type.dart';
 import '../services/service_locator.dart';
 

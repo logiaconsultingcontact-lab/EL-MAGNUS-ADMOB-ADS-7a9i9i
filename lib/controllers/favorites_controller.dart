@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/favorite.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/repositories/favorites_repository.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/favorite.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/repositories/favorites_repository.dart';
 
 class FavoritesController extends ChangeNotifier {
   final FavoritesRepository _repository = FavoritesRepository();

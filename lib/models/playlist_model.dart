@@ -1,5 +1,5 @@
-import 'package:another_iptv_player/utils/type_convertions.dart';
-import 'package:another_iptv_player/models/playlist_type.dart'; // استيراد الـ Enum
+import 'package:ELMAGNUS/utils/type_convertions.dart';
+import 'package:ELMAGNUS/models/playlist_type.dart'; // استيراد الـ Enum
 
 class Playlist {
   final String id;

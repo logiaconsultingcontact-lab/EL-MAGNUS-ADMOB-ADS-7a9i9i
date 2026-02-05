@@ -1,4 +1,4 @@
-import 'package:another_iptv_player/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
 import 'package:flutter/material.dart';
 
 class WatchHistoryEmptyState extends StatelessWidget {

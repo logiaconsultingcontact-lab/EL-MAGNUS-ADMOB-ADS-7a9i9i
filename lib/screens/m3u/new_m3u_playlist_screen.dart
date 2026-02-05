@@ -1,8 +1,8 @@
-import 'package:another_iptv_player/controllers/m3u_controller.dart';
-import 'package:another_iptv_player/models/playlist_model.dart';
-import 'package:another_iptv_player/screens/m3u/m3u_data_loader_screen.dart';
-import 'package:another_iptv_player/services/m3u_parser.dart';
-import 'package:another_iptv_player/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/controllers/m3u_controller.dart';
+import 'package:ELMAGNUS/models/playlist_model.dart';
+import 'package:ELMAGNUS/screens/m3u/m3u_data_loader_screen.dart';
+import 'package:ELMAGNUS/services/m3u_parser.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

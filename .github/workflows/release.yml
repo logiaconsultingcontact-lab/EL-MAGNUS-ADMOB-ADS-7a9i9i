@@ -34,9 +34,9 @@ jobs:
             Download the appropriate version for your platform below.
             
             ### 🔧 Installation
-            - **Windows**: Extract zip and run `another_iptv_player.exe`
-            - **macOS**: Extract zip and run `another_iptv_player.app`
-            - **Linux**: Extract zip and run `another_iptv_player`
+            - **Windows**: Extract zip and run `ELMAGNUS.exe`
+            - **macOS**: Extract zip and run `ELMAGNUS.app`
+            - **Linux**: Extract zip and run `ELMAGNUS`
             - **Android**: Install the APK file
             - **iOS**: Requires developer account for installation
             

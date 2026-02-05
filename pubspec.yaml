@@ -1,4 +1,4 @@
-name: another_iptv_player
+name: ELMAGNUS
 description: "Another IPTV Player"
 publish_to: "none"
 
@@ -48,6 +48,9 @@ dependencies:
   wakelock_plus: ^1.2.5
   audioplayers: ^6.5.1
   xml: ^6.5.0
+  google_mobile_ads: ^5.0.0
+  msix: ^3.16.9
+
 
 
 dev_dependencies:
@@ -82,6 +85,14 @@ flutter_icons:
   linux:
     generate: true
     image_path: "assets/icons/LOGO.png"
+
+msix_config:
+  display_name: EL MAGNUS
+  publisher_display_name: Logia Consulting
+  identity_name: com.logia.elmagnus
+  msix_version: 1.0.0.0
+
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

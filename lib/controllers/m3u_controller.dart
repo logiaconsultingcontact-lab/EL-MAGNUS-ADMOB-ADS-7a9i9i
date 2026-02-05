@@ -1,14 +1,14 @@
 import 'dart:convert' show utf8;
 import 'dart:io' show File, HttpClient;
-import 'package:another_iptv_player/database/database.dart'
+import 'package:ELMAGNUS/database/database.dart'
     hide M3uEpisodes, M3uSeries;
-import 'package:another_iptv_player/models/category.dart';
-import 'package:another_iptv_player/models/category_type.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/m3u_item.dart';
-import 'package:another_iptv_player/models/progress_step.dart';
-import 'package:another_iptv_player/services/m3u_parser.dart';
-import 'package:another_iptv_player/services/service_locator.dart';
+import 'package:ELMAGNUS/models/category.dart';
+import 'package:ELMAGNUS/models/category_type.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/m3u_item.dart';
+import 'package:ELMAGNUS/models/progress_step.dart';
+import 'package:ELMAGNUS/services/m3u_parser.dart';
+import 'package:ELMAGNUS/services/service_locator.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:uuid/uuid.dart';

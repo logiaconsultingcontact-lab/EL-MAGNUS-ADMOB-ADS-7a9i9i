@@ -1,19 +1,19 @@
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/screens/search_screen.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/screens/search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:another_iptv_player/controllers/xtream_code_home_controller.dart';
-import 'package:another_iptv_player/models/api_configuration_model.dart';
-import 'package:another_iptv_player/models/category_view_model.dart';
-import 'package:another_iptv_player/models/playlist_model.dart';
-import 'package:another_iptv_player/repositories/iptv_repository.dart';
-import 'package:another_iptv_player/screens/category_detail_screen.dart';
-import 'package:another_iptv_player/screens/xtream-codes/xtream_code_playlist_settings_screen.dart';
-import 'package:another_iptv_player/screens/watch_history_screen.dart';
-import 'package:another_iptv_player/services/app_state.dart';
-import 'package:another_iptv_player/utils/navigate_by_content_type.dart';
-import 'package:another_iptv_player/utils/responsive_helper.dart';
-import 'package:another_iptv_player/widgets/category_section.dart';
+import 'package:ELMAGNUS/controllers/xtream_code_home_controller.dart';
+import 'package:ELMAGNUS/models/api_configuration_model.dart';
+import 'package:ELMAGNUS/models/category_view_model.dart';
+import 'package:ELMAGNUS/models/playlist_model.dart';
+import 'package:ELMAGNUS/repositories/iptv_repository.dart';
+import 'package:ELMAGNUS/screens/category_detail_screen.dart';
+import 'package:ELMAGNUS/screens/xtream-codes/xtream_code_playlist_settings_screen.dart';
+import 'package:ELMAGNUS/screens/watch_history_screen.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
+import 'package:ELMAGNUS/utils/navigate_by_content_type.dart';
+import 'package:ELMAGNUS/utils/responsive_helper.dart';
+import 'package:ELMAGNUS/widgets/category_section.dart';
 import '../../models/content_type.dart';
 
 class XtreamCodeHomeScreen extends StatefulWidget {

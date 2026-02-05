@@ -1,9 +1,9 @@
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/category.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/live_stream.dart';
-import 'package:another_iptv_player/models/m3u_series.dart';
-import 'package:another_iptv_player/services/app_state.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/category.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/live_stream.dart';
+import 'package:ELMAGNUS/models/m3u_series.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
 
 import '../models/m3u_item.dart';
 import '../models/series.dart';

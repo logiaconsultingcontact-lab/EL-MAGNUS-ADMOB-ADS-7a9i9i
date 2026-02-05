@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/content_type.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
 
 class WatchHistory {
   late String playlistId;

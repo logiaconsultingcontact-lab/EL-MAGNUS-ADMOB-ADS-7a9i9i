@@ -1,17 +1,17 @@
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/models/favorite.dart';
-import 'package:another_iptv_player/models/content_type.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/models/favorite.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/widgets/content_card.dart';
-import 'package:another_iptv_player/utils/navigate_by_content_type.dart';
-import 'package:another_iptv_player/utils/build_media_url.dart';
-import 'package:another_iptv_player/utils/get_playlist_type.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/services/app_state.dart';
-import 'package:another_iptv_player/models/live_stream.dart';
-import 'package:another_iptv_player/models/vod_streams.dart';
-import 'package:another_iptv_player/models/series.dart';
-import 'package:another_iptv_player/models/m3u_item.dart';
+import 'package:ELMAGNUS/widgets/content_card.dart';
+import 'package:ELMAGNUS/utils/navigate_by_content_type.dart';
+import 'package:ELMAGNUS/utils/build_media_url.dart';
+import 'package:ELMAGNUS/utils/get_playlist_type.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
+import 'package:ELMAGNUS/models/live_stream.dart';
+import 'package:ELMAGNUS/models/vod_streams.dart';
+import 'package:ELMAGNUS/models/series.dart';
+import 'package:ELMAGNUS/models/m3u_item.dart';
 import '../../repositories/favorites_repository.dart';
 
 class FavoritesSection extends StatelessWidget {

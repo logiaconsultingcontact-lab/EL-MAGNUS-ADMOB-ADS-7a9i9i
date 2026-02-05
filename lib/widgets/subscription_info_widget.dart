@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/models/api_response.dart';
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/utils/subscription_utils.dart';
+import 'package:ELMAGNUS/models/api_response.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/utils/subscription_utils.dart';
 import 'info_tile_widget.dart';
 import 'section_title_widget.dart';
 

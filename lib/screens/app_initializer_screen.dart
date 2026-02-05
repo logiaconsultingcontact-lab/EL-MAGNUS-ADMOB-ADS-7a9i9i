@@ -1,6 +1,6 @@
-import 'package:another_iptv_player/models/playlist_model.dart';
-import 'package:another_iptv_player/screens/m3u/m3u_home_screen.dart';
-import 'package:another_iptv_player/screens/playlist_screen.dart';
+import 'package:ELMAGNUS/models/playlist_model.dart';
+import 'package:ELMAGNUS/screens/m3u/m3u_home_screen.dart';
+import 'package:ELMAGNUS/screens/playlist_screen.dart';
 import 'package:flutter/material.dart';
 import '../../repositories/user_preferences.dart';
 import '../../services/app_state.dart';

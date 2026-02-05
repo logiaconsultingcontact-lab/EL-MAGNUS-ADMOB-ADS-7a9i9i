@@ -1,7 +1,7 @@
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/widgets/watch_history/watch_history_card.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/widgets/watch_history/watch_history_card.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/models/watch_history.dart';
+import 'package:ELMAGNUS/models/watch_history.dart';
 
 class WatchHistorySection extends StatelessWidget {
   final String title;

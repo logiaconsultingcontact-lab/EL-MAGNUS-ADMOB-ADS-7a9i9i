@@ -1,9 +1,9 @@
-import 'package:another_iptv_player/models/category_view_model.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/models/playlist_model.dart';
-import 'package:another_iptv_player/repositories/m3u_repository.dart';
-import 'package:another_iptv_player/services/app_state.dart';
+import 'package:ELMAGNUS/models/category_view_model.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/models/playlist_model.dart';
+import 'package:ELMAGNUS/repositories/m3u_repository.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
 import '../models/category_type.dart';
 
 class ContentService {

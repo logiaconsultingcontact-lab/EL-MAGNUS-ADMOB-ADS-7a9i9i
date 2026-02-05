@@ -1,6 +1,6 @@
 import 'dart:convert' show utf8;
 import 'dart:io' show File, HttpClient;
-import 'package:another_iptv_player/models/content_type.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
 import 'package:uuid/uuid.dart';
 import '../models/m3u_item.dart';
 

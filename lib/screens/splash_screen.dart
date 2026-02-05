@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/screens/app_initializer_screen.dart';
+import 'package:ELMAGNUS/screens/app_initializer_screen.dart';
 
 
 class SplashScreen extends StatefulWidget {

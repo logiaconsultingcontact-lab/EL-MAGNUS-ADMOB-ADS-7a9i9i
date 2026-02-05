@@ -1,12 +1,12 @@
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/models/category_type.dart';
-import 'package:another_iptv_player/models/category_view_model.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/m3u_item.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/models/view_state.dart';
-import 'package:another_iptv_player/repositories/m3u_repository.dart';
-import 'package:another_iptv_player/services/app_state.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/models/category_type.dart';
+import 'package:ELMAGNUS/models/category_view_model.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/m3u_item.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/models/view_state.dart';
+import 'package:ELMAGNUS/repositories/m3u_repository.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
 import 'package:flutter/material.dart';
 
 class M3UHomeController extends ChangeNotifier {

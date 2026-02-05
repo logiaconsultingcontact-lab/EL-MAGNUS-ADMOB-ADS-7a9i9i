@@ -1,11 +1,11 @@
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/content_type.dart';
-import 'package:another_iptv_player/models/favorite.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/services/app_state.dart';
-import 'package:another_iptv_player/services/service_locator.dart';
-import 'package:another_iptv_player/utils/get_playlist_type.dart';
-import 'package:another_iptv_player/repositories/m3u_repository.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/content_type.dart';
+import 'package:ELMAGNUS/models/favorite.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
+import 'package:ELMAGNUS/services/service_locator.dart';
+import 'package:ELMAGNUS/utils/get_playlist_type.dart';
+import 'package:ELMAGNUS/repositories/m3u_repository.dart';
 import 'package:uuid/uuid.dart';
 
 class FavoritesRepository {

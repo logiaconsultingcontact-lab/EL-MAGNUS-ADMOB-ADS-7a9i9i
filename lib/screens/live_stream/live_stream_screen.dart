@@ -1,9 +1,13 @@
 import 'dart:async';
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/utils/get_playlist_type.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/services/app_state.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' as admob;
+
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/utils/get_playlist_type.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/services/app_state.dart';
+
 import '../../../models/content_type.dart';
 import '../../../services/event_bus.dart';
 import '../../../utils/responsive_helper.dart';
@@ -31,6 +35,10 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
   late FavoritesController _favoritesController;
   bool _isFavorite = false;
 
+  // ===== AdMob =====
+  admob.BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -38,12 +46,33 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     _favoritesController = FavoritesController();
     _initializeQueue();
     _checkFavoriteStatus();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    if (kIsWeb) return;
+
+    _bannerAd = admob.BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      size: admob.AdSize.banner,
+      request: const admob.AdRequest(),
+      listener: admob.BannerAdListener(
+        onAdLoaded: (_) {
+          if (!mounted) return;
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd!.load();
   }
 
   Future<void> _initializeQueue() async {
     allContents = isXtreamCode
-        ? (await AppState.xtreamCodeRepository!
-        .getLiveChannelsByCategoryId(
+        ? (await AppState.xtreamCodeRepository!.getLiveChannelsByCategoryId(
       categoryId: widget.content.liveStream!.categoryId,
     ))!
         .map((x) => ContentItem(
@@ -73,21 +102,24 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
       allContentsLoaded = true;
     });
 
-    contentItemIndexChangedSubscription =
-        EventBus().on<int>('player_content_item_index').listen((index) {
-          if (!mounted) return;
-          setState(() {
-            selectedContentItemIndex = index;
-            contentItem = allContents[index];
-          });
-          _checkFavoriteStatus();
-        });
+    contentItemIndexChangedSubscription = EventBus()
+        .on<int>('player_content_item_index')
+        .listen((int index) {
+      if (!mounted) return;
+
+      setState(() {
+        selectedContentItemIndex = index;
+        contentItem = allContents[selectedContentItemIndex];
+      });
+      _checkFavoriteStatus();
+    });
   }
 
   @override
   void dispose() {
     contentItemIndexChangedSubscription.cancel();
     _favoritesController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -103,19 +135,19 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
 
   Future<void> _toggleFavorite() async {
     final result = await _favoritesController.toggleFavorite(contentItem);
-    if (!mounted) return;
+    if (mounted) {
+      setState(() => _isFavorite = result);
 
-    setState(() => _isFavorite = result);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result
-              ? context.loc.added_to_favorites
-              : context.loc.removed_from_favorites,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result
+                ? context.loc.added_to_favorites
+                : context.loc.removed_from_favorites,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -132,6 +164,7 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             PlayerWidget(contentItem: widget.content, queue: allContents),
+
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
@@ -139,111 +172,110 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.red,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                SelectableText(
-                                  context.loc.live.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: SelectableText(
-                              contentItem.name,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: _toggleFavorite,
-                            icon: Icon(
-                              _isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color:
-                              _isFavorite ? Colors.red : Colors.grey,
-                              size: 28,
-                            ),
-                          ),
-                        ],
-                      ),
+                      _buildHeader(context),
                       const SizedBox(height: 24),
-
-                      /// OTHER CHANNELS
-                      SelectableText(
-                        context.loc.other_channels,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-
-                      ContentItemCardWidget(
-                        cardHeight:
-                        ResponsiveHelper.getCardHeight(context),
-                        cardWidth:
-                        ResponsiveHelper.getCardWidth(context),
-                        contentItems: allContents,
-                        onContentTap: _onContentTap,
-                        initialSelectedIndex:
-                        selectedContentItemIndex,
-                        isSelectionModeEnabled: true,
-                      ),
+                      _buildOtherChannels(context),
                       const SizedBox(height: 24),
-
-                      /// CHANNEL INFORMATION (STREAM TYPE ONLY)
-                      SelectableText(
-                        context.loc.channel_information,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildInfoCard(
-                        icon: Icons.signal_cellular_alt,
-                        title: context.loc.stream_type,
-                        value: contentItem.containerExtension
-                            ?.toUpperCase() ??
-                            context.loc.live,
-                        color: Colors.purple,
-                      ),
+                      _buildChannelInfo(context),
                     ],
                   ),
                 ),
               ),
             ),
+
+            // ===== Banner Ad =====
+            if (_isBannerLoaded && _bannerAd != null)
+              SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: admob.AdWidget(ad: _bannerAd!),
+              ),
           ],
         ),
       ),
+    );
+  }
+
+  // ===== UI HELPERS =====
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            context.loc.live.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: SelectableText(
+            contentItem.name,
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ),
+        IconButton(
+          onPressed: _toggleFavorite,
+          icon: Icon(
+            _isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: _isFavorite ? Colors.red : Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOtherChannels(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SelectableText(
+          context.loc.other_channels,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 16),
+        ContentItemCardWidget(
+          cardHeight: ResponsiveHelper.getCardHeight(context),
+          cardWidth: ResponsiveHelper.getCardWidth(context),
+          contentItems: allContents,
+          onContentTap: _onContentTap,
+          initialSelectedIndex: selectedContentItemIndex,
+          isSelectionModeEnabled: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChannelInfo(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SelectableText(
+          context.loc.channel_information,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 24),
+        _buildInfoCard(
+          icon: Icons.signal_cellular_alt,
+          title: context.loc.stream_type,
+          value:
+          contentItem.containerExtension?.toUpperCase() ??
+              context.loc.live,
+          color: Colors.purple,
+        ),
+      ],
     );
   }
 
@@ -258,40 +290,21 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border:
-        Border.all(color: Colors.grey.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: color),
-          ),
+          Icon(icon, size: 20, color: color),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SelectableText(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                SelectableText(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                Text(title,
+                    style:
+                    const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(value,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -300,11 +313,11 @@ class _LiveStreamScreenState extends State<LiveStreamScreen> {
     );
   }
 
-  void _onContentTap(ContentItem item) {
-    if (!mounted) return;
+  void _onContentTap(ContentItem contentItem) {
     setState(() {
-      selectedContentItemIndex = allContents.indexOf(item);
+      selectedContentItemIndex = allContents.indexOf(contentItem);
     });
+
     EventBus().emit(
       'player_content_item_index_changed',
       selectedContentItemIndex,

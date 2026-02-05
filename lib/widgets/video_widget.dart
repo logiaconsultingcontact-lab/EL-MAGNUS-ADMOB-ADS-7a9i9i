@@ -1,7 +1,7 @@
-import 'package:another_iptv_player/services/player_state.dart';
-import 'package:another_iptv_player/widgets/player-buttons/back_button_widget.dart';
-import 'package:another_iptv_player/widgets/player-buttons/video_settings_widget.dart';
-import 'package:another_iptv_player/widgets/player-buttons/video_title_widget.dart';
+import 'package:ELMAGNUS/services/player_state.dart';
+import 'package:ELMAGNUS/widgets/player-buttons/back_button_widget.dart';
+import 'package:ELMAGNUS/widgets/player-buttons/video_settings_widget.dart';
+import 'package:ELMAGNUS/widgets/player-buttons/video_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 

@@ -1,13 +1,16 @@
 import 'dart:async';
-import 'package:another_iptv_player/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/models/watch_history.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/models/watch_history.dart';
 import '../../../models/content_type.dart';
 import '../../../services/event_bus.dart';
 import '../../../widgets/loading_widget.dart';
 import '../../../widgets/player_widget.dart';
+import 'package:flutter/foundation.dart'; // kIsWeb
+import 'package:google_mobile_ads/google_mobile_ads.dart' as admob;
+
 
 class EpisodeScreen extends StatefulWidget {
   final SeriesInfosData? seriesInfo;
@@ -37,40 +40,64 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
   late StreamSubscription contentItemIndexChangedSubscription;
   final ScrollController _scrollController = ScrollController();
 
+  // ===== AdMob Banner =====
+  admob.BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+
   @override
   void initState() {
     super.initState();
     contentItem = widget.contentItem;
     _initializeQueue();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    if (kIsWeb) return;
+
+    _bannerAd = admob.BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      size: admob.AdSize.banner,
+      request: const admob.AdRequest(),
+      listener: admob.BannerAdListener(
+        onAdLoaded: (_) {
+          if (!mounted) return;
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd!.load();
   }
 
   @override
   void dispose() {
     contentItemIndexChangedSubscription.cancel();
     _scrollController.dispose();
+    _bannerAd?.dispose(); // dispose AdMob
     super.dispose();
   }
 
   Future<void> _initializeQueue() async {
     allContents = widget.episodes
-        .where((x) {
-          return x.season == widget.contentItem.season;
-        })
+        .where((x) => x.season == widget.contentItem.season)
         .map((x) {
-          return ContentItem(
-            x.episodeId,
-            x.title,
-            x.movieImage ?? "",
-            ContentType.series,
-            containerExtension: x.containerExtension,
-            season: x.season,
-          );
-        })
-        .toList();
+      return ContentItem(
+        x.episodeId,
+        x.title,
+        x.movieImage ?? "",
+        ContentType.series,
+        containerExtension: x.containerExtension,
+        season: x.season,
+      );
+    }).toList();
 
     setState(() {
       selectedContentItemIndex = allContents.indexWhere(
-        (element) => element.id == widget.contentItem.id,
+            (element) => element.id == widget.contentItem.id,
       );
       allContentsLoaded = true;
 
@@ -82,13 +109,13 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
     contentItemIndexChangedSubscription = EventBus()
         .on<int>('player_content_item_index')
         .listen((int index) {
-          if (!mounted) return;
+      if (!mounted) return;
 
-          setState(() {
-            selectedContentItemIndex = index;
-            contentItem = allContents[selectedContentItemIndex];
-          });
-        });
+      setState(() {
+        selectedContentItemIndex = index;
+        contentItem = allContents[selectedContentItemIndex];
+      });
+    });
   }
 
   void _scrollToSelectedItem() {
@@ -104,7 +131,7 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
     }
   }
 
-  _onContentTap(ContentItem contentItem) {
+  void _onContentTap(ContentItem contentItem) {
     setState(() {
       if (!mounted) return;
 
@@ -126,11 +153,13 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Player
               PlayerWidget(contentItem: widget.contentItem, queue: allContents),
+
+              // محتوى الحلقة
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(0, 5, 0, 0),
-
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -144,6 +173,7 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                           ),
                           child: Column(
                             children: [
+                              // Header & List
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Row(
@@ -154,15 +184,11 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            ?.copyWith(fontWeight: FontWeight.bold),
                                       ),
                                     ),
                                     Text(
-                                      context.loc.episode_count(
-                                        allContents.length.toString(),
-                                      ),
+                                      context.loc.episode_count(allContents.length.toString()),
                                       style: TextStyle(
                                         color: Colors.grey.shade600,
                                         fontSize: 14,
@@ -174,29 +200,19 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                               Expanded(
                                 child: allContents.isEmpty
                                     ? Center(
-                                        child: Text(
-                                          context.loc.not_found_in_category,
-                                        ),
-                                      )
+                                  child: Text(context.loc.not_found_in_category),
+                                )
                                     : ListView.builder(
-                                        controller: _scrollController,
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 16,
-                                        ),
-                                        itemCount: allContents.length,
-                                        itemBuilder: (context, index) {
-                                          final episode = widget.episodes.where(
-                                            (x) {
-                                              return x.episodeId ==
-                                                  allContents[index].id;
-                                            },
-                                          ).first;
-                                          return _buildEpisodeCard(
-                                            episode,
-                                            index,
-                                          );
-                                        },
-                                      ),
+                                  controller: _scrollController,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  itemCount: allContents.length,
+                                  itemBuilder: (context, index) {
+                                    final episode = widget.episodes.firstWhere(
+                                          (x) => x.episodeId == allContents[index].id,
+                                    );
+                                    return _buildEpisodeCard(episode, index);
+                                  },
+                                ),
                               ),
                             ],
                           ),
@@ -206,6 +222,14 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                   ),
                 ),
               ),
+
+              // ===== Banner Ad =====
+              if (_isBannerLoaded && _bannerAd != null)
+                SizedBox(
+                  width: _bannerAd!.size.width.toDouble(),
+                  height: _bannerAd!.size.height.toDouble(),
+                  child: admob.AdWidget(ad: _bannerAd!),
+                ),
             ],
           ),
         ),
@@ -251,8 +275,7 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                   color: Theme.of(context).primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child:
-                episode.movieImage != null && episode.movieImage!.isNotEmpty
+                child: episode.movieImage != null && episode.movieImage!.isNotEmpty
                     ? ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
@@ -305,15 +328,12 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                         if (isRecent)
                           Container(
                             margin: const EdgeInsets.only(left: 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.green,
                               borderRadius: BorderRadius.circular(6),
                             ),
-                            child:  Text(
+                            child: Text(
                               context.loc.new_ep,
                               style: TextStyle(
                                 color: Colors.white,
@@ -325,9 +345,7 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                       ],
                     ),
 
-                    // Süre bilgisi
-                    if (episode.duration != null &&
-                        episode.duration!.isNotEmpty) ...[
+                    if (episode.duration != null && episode.duration!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         context.loc.duration(episode.duration!),
@@ -338,7 +356,6 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                       ),
                     ],
 
-                    // Plot
                     if (episode.plot != null && episode.plot!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
@@ -355,16 +372,12 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
                 ),
               ),
 
-              // Rating ve play icon
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (episode.rating != null && episode.rating! > 0) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: Colors.amber.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),

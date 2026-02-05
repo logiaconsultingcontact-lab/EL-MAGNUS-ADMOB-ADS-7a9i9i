@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'package:another_iptv_player/l10n/localization_extension.dart';
-import 'package:another_iptv_player/models/m3u_series.dart';
+import 'package:ELMAGNUS/l10n/localization_extension.dart';
+import 'package:ELMAGNUS/models/m3u_series.dart';
 import 'package:flutter/material.dart';
-import 'package:another_iptv_player/database/database.dart';
-import 'package:another_iptv_player/models/playlist_content_model.dart';
-import 'package:another_iptv_player/models/watch_history.dart';
+import 'package:ELMAGNUS/database/database.dart';
+import 'package:ELMAGNUS/models/playlist_content_model.dart';
+import 'package:ELMAGNUS/models/watch_history.dart';
 import '../../../models/content_type.dart';
 import '../../../services/event_bus.dart';
 import '../../../widgets/loading_widget.dart';
