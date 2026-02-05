@@ -21,16 +21,18 @@ jobs:
       - name: Build Windows
         run: flutter build windows
 
-      - name: Decode certificate
+      - name: Restore certificate
         shell: powershell
         run: |
           echo "${{ secrets.WINDOWS_CERT }}" > cert.b64
           certutil -decode cert.b64 elmagnus.pfx
 
       - name: Build MSIX
-        run: dart run msix:create --no-install-cert
+        run: dart run msix:create
         env:
+          MSIX_CERTIFICATE_PATH: elmagnus.pfx
           MSIX_CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          MSIX_SKIP_INSTALL_CERT: true
 
       - name: Upload MSIX to Release
         uses: actions/upload-release-asset@v1
