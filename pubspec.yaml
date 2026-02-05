@@ -87,11 +87,11 @@ flutter_icons:
     image_path: "assets/icons/LOGO.png"
 
 msix_config:
-  display_name: EL MAGNUS
+  display_name: EL-MAGNUS
   publisher_display_name: Logia Consulting
   identity_name: com.logia.elmagnus
   msix_version: 1.0.0.0
-
+  certificate_path: elmagnus.pfx
 
 
   # To add assets to your application, add an assets section, like this:
