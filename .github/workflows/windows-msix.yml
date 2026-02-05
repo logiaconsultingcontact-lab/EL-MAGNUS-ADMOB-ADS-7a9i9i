@@ -24,7 +24,7 @@ jobs:
         echo "${{ secrets.WINDOWS_CERT }}" > cert.b64
         certutil -decode cert.b64 elmagnus.pfx
 
-    - run: dart run msix:create
+    - run: dart run msix:create --no-install-cert --password ${{ secrets.CERT_PASSWORD }}
       env:
         MSIX_CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
