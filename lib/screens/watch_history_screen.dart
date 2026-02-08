@@ -15,7 +15,7 @@ class WatchHistoryScreen extends StatefulWidget {
   final Key? screenKey;
 
   const WatchHistoryScreen({
-    super.key, 
+    super.key,
     required this.playlistId,
     this.screenKey,
   });
@@ -128,7 +128,7 @@ class _WatchHistoryScreenState extends State<WatchHistoryScreen> {
       favorite.contentType,
       episodeId: favorite.episodeId,
     );
-    
+
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

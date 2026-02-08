@@ -1,6 +1,9 @@
 import 'package:ELMAGNUS/l10n/localization_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' as admob;
 import 'package:provider/provider.dart';
+
 import '../../controllers/playlist_controller.dart';
 import '../../models/playlist_model.dart';
 import '../../widgets/playlist_card.dart';
@@ -19,12 +22,56 @@ class PlaylistScreenState extends State<PlaylistScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => PlaylistController(),
-      child: _PlaylistScreenBody(),
+      child: const _PlaylistScreenBody(),
     );
   }
 }
 
-class _PlaylistScreenBody extends StatelessWidget {
+class _PlaylistScreenBody extends StatefulWidget {
+  const _PlaylistScreenBody();
+
+  @override
+  State<_PlaylistScreenBody> createState() => _PlaylistScreenBodyState();
+}
+
+class _PlaylistScreenBodyState extends State<_PlaylistScreenBody> {
+  // ===== AdMob =====
+  admob.BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    if (kIsWeb) return;
+
+    _bannerAd = admob.BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      size: admob.AdSize.banner,
+      request: const admob.AdRequest(),
+      listener: admob.BannerAdListener(
+        onAdLoaded: (_) {
+          if (!mounted) return;
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd!.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,9 +80,25 @@ class _PlaylistScreenBody extends StatelessWidget {
 
     return Scaffold(
       appBar: _buildAppBar(context),
-      body: Consumer<PlaylistController>(
-        builder: (context, controller, child) =>
-            _buildBodyFromState(context, controller),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Consumer<PlaylistController>(
+                builder: (context, controller, child) =>
+                    _buildBodyFromState(context, controller),
+              ),
+            ),
+
+            // ===== Banner Ad =====
+            if (_isBannerLoaded && _bannerAd != null)
+              SizedBox(
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: admob.AdWidget(ad: _bannerAd!),
+              ),
+          ],
+        ),
       ),
       floatingActionButton: _buildFloatingActionButton(context),
     );
@@ -54,15 +117,15 @@ class _PlaylistScreenBody extends StatelessWidget {
     return AppBar(
       title: Text(
         context.loc.my_playlists,
-        style: TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildBodyFromState(
-    BuildContext context,
-    PlaylistController controller,
-  ) {
+      BuildContext context,
+      PlaylistController controller,
+      ) {
     if (controller.isLoading) {
       return const PlaylistLoadingState();
     }
@@ -84,9 +147,9 @@ class _PlaylistScreenBody extends StatelessWidget {
   }
 
   Widget _buildPlaylistList(
-    BuildContext context,
-    PlaylistController controller,
-  ) {
+      BuildContext context,
+      PlaylistController controller,
+      ) {
     return RefreshIndicator(
       onRefresh: () => controller.loadPlaylists(context),
       child: ListView.builder(
@@ -124,10 +187,10 @@ class _PlaylistScreenBody extends StatelessWidget {
   }
 
   void _showDeleteDialog(
-    BuildContext context,
-    PlaylistController controller,
-    Playlist playlist,
-  ) {
+      BuildContext context,
+      PlaylistController controller,
+      Playlist playlist,
+      ) {
     showDialog(
       context: context,
       builder: (context) => _DeletePlaylistDialog(

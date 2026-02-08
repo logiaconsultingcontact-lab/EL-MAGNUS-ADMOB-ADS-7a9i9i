@@ -15,6 +15,8 @@ import 'package:ELMAGNUS/utils/navigate_by_content_type.dart';
 import 'package:ELMAGNUS/utils/responsive_helper.dart';
 import 'package:ELMAGNUS/widgets/category_section.dart';
 import '../../models/content_type.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' as admob;
 
 class XtreamCodeHomeScreen extends StatefulWidget {
   final Playlist playlist;
@@ -27,6 +29,7 @@ class XtreamCodeHomeScreen extends StatefulWidget {
 
 class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
   late XtreamCodeHomeController _controller;
+
   static const double _desktopBreakpoint = 900.0;
   static const double _largeScreenBreakpoint = 1200.0;
   static const double _defaultNavWidth = 80.0;
@@ -37,17 +40,24 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
   static const double _largeIconSize = 28.0;
   static const double _defaultFontSize = 10.0;
   static const double _largeFontSize = 11.0;
+
   int? _hoveredIndex;
+
+  // ===== AdMob =====
+  admob.BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _initializeController();
+    _loadBannerAd();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -62,6 +72,37 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
     );
     AppState.xtreamCodeRepository = repository;
     _controller = XtreamCodeHomeController(false);
+  }
+
+  void _loadBannerAd() {
+    if (kIsWeb) return;
+
+    _bannerAd = admob.BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // TEST ID
+      size: admob.AdSize.banner,
+      request: const admob.AdRequest(),
+      listener: admob.BannerAdListener(
+        onAdLoaded: (_) {
+          if (!mounted) return;
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd!.load();
+  }
+
+  Widget _buildBannerAd() {
+    if (!_isBannerLoaded || _bannerAd == null) return const SizedBox();
+
+    return SizedBox(
+      width: _bannerAd!.size.width.toDouble(),
+      height: _bannerAd!.size.height.toDouble(),
+      child: admob.AdWidget(ad: _bannerAd!),
+    );
   }
 
   @override
@@ -82,6 +123,7 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
     if (controller.isLoading) {
       return _buildLoadingScreen(context);
     }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= _desktopBreakpoint) {
@@ -112,7 +154,12 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
       XtreamCodeHomeController controller,
       ) {
     return Scaffold(
-      body: _buildPageView(controller),
+      body: Column(
+        children: [
+          Expanded(child: _buildPageView(controller)),
+          _buildBannerAd(),
+        ],
+      ),
       bottomNavigationBar: _buildBottomNavigationBar(context, controller),
     );
   }
@@ -123,10 +170,17 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
       BoxConstraints constraints,
       ) {
     return Scaffold(
-      body: Row(
+      body: Column(
         children: [
-          _buildDesktopNavigationBar(context, controller, constraints),
-          Expanded(child: _buildPageView(controller)),
+          Expanded(
+            child: Row(
+              children: [
+                _buildDesktopNavigationBar(context, controller, constraints),
+                Expanded(child: _buildPageView(controller)),
+              ],
+            ),
+          ),
+          _buildBannerAd(),
         ],
       ),
     );
@@ -145,21 +199,9 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
         key: ValueKey('watch_history_${controller.currentIndex}'),
         playlistId: widget.playlist.id,
       ),
-      _buildContentPage(
-        controller.liveCategories!,
-        ContentType.liveStream,
-        controller,
-      ),
-      _buildContentPage(
-        controller.movieCategories,
-        ContentType.vod,
-        controller,
-      ),
-      _buildContentPage(
-        controller.seriesCategories,
-        ContentType.series,
-        controller,
-      ),
+      _buildContentPage(controller.liveCategories!, ContentType.liveStream),
+      _buildContentPage(controller.movieCategories, ContentType.vod),
+      _buildContentPage(controller.seriesCategories, ContentType.series),
       XtreamCodePlaylistSettingsScreen(playlist: widget.playlist),
     ];
   }
@@ -167,49 +209,39 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
   Widget _buildContentPage(
       List<CategoryViewModel> categories,
       ContentType contentType,
-      XtreamCodeHomeController controller,
       ) {
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) => [
-        _buildSliverAppBar(context, controller, contentType),
-      ],
-      body: _buildCategoryList(categories, contentType),
-    );
-  }
-
-  SliverAppBar _buildSliverAppBar(
-      BuildContext context,
-      XtreamCodeHomeController controller,
-      ContentType contentType,
-      ) {
-    if (ResponsiveHelper.isDesktopOrTV(context)) {
-      return _buildDesktopSliverAppBar(context, contentType);
-    }
-    return _buildMobileSliverAppBar(context, controller, contentType);
-  }
-
-  SliverAppBar _buildDesktopSliverAppBar(
-      BuildContext context,
-      ContentType contentType,
-      ) {
-    return SliverAppBar(
-      title: SelectableText(
-        _getDesktopTitle(context, contentType),
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      floating: true,
-      snap: true,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => _navigateToSearch(context, contentType),
+        SliverAppBar(
+          title: SelectableText(
+            _getTitle(context, contentType),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          floating: true,
+          snap: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () => _navigateToSearch(context, contentType),
+            ),
+          ],
         ),
       ],
+      body: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: categories.length,
+        itemBuilder: (context, index) => CategorySection(
+          category: categories[index],
+          cardWidth: ResponsiveHelper.getCardWidth(context),
+          cardHeight: ResponsiveHelper.getCardHeight(context),
+          onSeeAllTap: () => _navigateToCategoryDetail(categories[index]),
+          onContentTap: (content) => navigateByContentType(context, content),
+        ),
+      ),
     );
   }
 
-  String _getDesktopTitle(BuildContext context, ContentType contentType) {
+  String _getTitle(BuildContext context, ContentType contentType) {
     switch (contentType) {
       case ContentType.liveStream:
         return context.loc.live_streams;
@@ -220,59 +252,12 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
     }
   }
 
-  SliverAppBar _buildMobileSliverAppBar(
-      BuildContext context,
-      XtreamCodeHomeController controller,
-      ContentType contentType,
-      ) {
-    return SliverAppBar(
-      title: SelectableText(
-        controller.getPageTitle(context),
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      floating: true,
-      snap: true,
-      elevation: 0,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => _navigateToSearch(context, contentType),
-        ),
-      ],
-    );
-  }
-
   void _navigateToSearch(BuildContext context, ContentType contentType) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => SearchScreen(contentType: contentType),
       ),
-    );
-  }
-
-  Widget _buildCategoryList(
-      List<CategoryViewModel> categories,
-      ContentType contentType,
-      ) {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: categories.length,
-      itemBuilder: (context, index) =>
-          _buildCategorySection(categories[index], contentType),
-    );
-  }
-
-  Widget _buildCategorySection(
-      CategoryViewModel category,
-      ContentType contentType,
-      ) {
-    return CategorySection(
-      category: category,
-      cardWidth: ResponsiveHelper.getCardWidth(context),
-      cardHeight: ResponsiveHelper.getCardHeight(context),
-      onSeeAllTap: () => _navigateToCategoryDetail(category),
-      onContentTap: (content) => navigateByContentType(context, content),
     );
   }
 
@@ -293,16 +278,11 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
       currentIndex: controller.currentIndex,
       onTap: controller.onNavigationTap,
       type: BottomNavigationBarType.fixed,
-      items: _buildBottomNavigationItems(context),
+      items: _getNavigationItems(context)
+          .map((item) =>
+          BottomNavigationBarItem(icon: Icon(item.icon), label: item.label))
+          .toList(),
     );
-  }
-
-  List<BottomNavigationBarItem> _buildBottomNavigationItems(
-      BuildContext context,
-      ) {
-    return _getNavigationItems(context).map((item) {
-      return BottomNavigationBarItem(icon: Icon(item.icon), label: item.label);
-    }).toList();
   }
 
   Widget _buildDesktopNavigationBar(
@@ -310,123 +290,42 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
       XtreamCodeHomeController controller,
       BoxConstraints constraints,
       ) {
-    final navWidth = _getNavigationWidth(constraints.maxWidth);
-    return Container(
-      width: navWidth,
-      decoration: _getNavigationBarDecoration(context),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildDesktopNavigationItems(context, controller, constraints),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDesktopNavigationItems(
-      BuildContext context,
-      XtreamCodeHomeController controller,
-      BoxConstraints constraints,
-      ) {
-    final items = _getNavigationItems(context);
-    final sizes = _getNavigationSizes(constraints.maxWidth);
-    return Column(
-      children: items.map((item) {
-        final isSelected = controller.currentIndex == item.index;
-        return _buildNavigationItem(
-          context,
-          item,
-          isSelected,
-          sizes,
-              () => controller.onNavigationTap(item.index),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildNavigationItem(
-      BuildContext context,
-      NavigationItem item,
-      bool isSelected,
-      NavigationSizes sizes,
-      VoidCallback onTap,
-      ) {
-    return Focus(
-      onFocusChange: (hasFocus) {
-        setState(() => _hoveredIndex = hasFocus ? item.index : null);
-      },
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: double.infinity,
-          height: sizes.itemHeight,
-          margin: const EdgeInsets.symmetric(vertical: 2),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primaryContainer
-                : (_hoveredIndex == item.index
-                ? Colors.grey.withOpacity(0.2)
-                : Colors.transparent),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                item.icon,
-                color: _getIconColor(context, isSelected),
-                size: sizes.iconSize,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                item.label,
-                style: TextStyle(
-                  color: _getTextColor(context, isSelected),
-                  fontSize: sizes.fontSize,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _getNavigationBarDecoration(BuildContext context) {
-    return BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border(
-        right: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
-      ),
-    );
-  }
-
-  double _getNavigationWidth(double screenWidth) {
-    return screenWidth >= _largeScreenBreakpoint
+    final navWidth = constraints.maxWidth >= _largeScreenBreakpoint
         ? _largeNavWidth
         : _defaultNavWidth;
-  }
 
-  NavigationSizes _getNavigationSizes(double screenWidth) {
-    final isLargeScreen = screenWidth >= _largeScreenBreakpoint;
-    return NavigationSizes(
-      itemHeight: isLargeScreen ? _largeItemHeight : _defaultItemHeight,
-      iconSize: isLargeScreen ? _largeIconSize : _defaultIconSize,
-      fontSize: isLargeScreen ? _largeFontSize : _defaultFontSize,
+    return Container(
+      width: navWidth,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          right: BorderSide(color: Theme.of(context).dividerColor, width: 0.5),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _getNavigationItems(context).map((item) {
+          final isSelected = controller.currentIndex == item.index;
+          return GestureDetector(
+            onTap: () => controller.onNavigationTap(item.index),
+            child: Container(
+              height: _defaultItemHeight,
+              width: double.infinity,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Colors.transparent,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(item.icon),
+                  Text(item.label, textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
-  }
-
-  Color _getIconColor(BuildContext context, bool isSelected) {
-    return isSelected
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface;
-  }
-
-  Color _getTextColor(BuildContext context, bool isSelected) {
-    return isSelected
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface;
   }
 
   List<NavigationItem> _getNavigationItems(BuildContext context) {
@@ -434,20 +333,11 @@ class _XtreamCodeHomeScreenState extends State<XtreamCodeHomeScreen> {
       NavigationItem(icon: Icons.history, label: context.loc.history, index: 0),
       NavigationItem(icon: Icons.live_tv, label: context.loc.live, index: 1),
       NavigationItem(
-        icon: Icons.movie_outlined,
-        label: context.loc.movie,
-        index: 2,
-      ),
+          icon: Icons.movie_outlined, label: context.loc.movie, index: 2),
       NavigationItem(
-        icon: Icons.tv,
-        label: context.loc.series_plural,
-        index: 3,
-      ),
+          icon: Icons.tv, label: context.loc.series_plural, index: 3),
       NavigationItem(
-        icon: Icons.settings,
-        label: context.loc.settings,
-        index: 4,
-      ),
+          icon: Icons.settings, label: context.loc.settings, index: 4),
     ];
   }
 }
@@ -461,17 +351,5 @@ class NavigationItem {
     required this.icon,
     required this.label,
     required this.index,
-  });
-}
-
-class NavigationSizes {
-  final double itemHeight;
-  final double iconSize;
-  final double fontSize;
-
-  const NavigationSizes({
-    required this.itemHeight,
-    required this.iconSize,
-    required this.fontSize,
   });
 }

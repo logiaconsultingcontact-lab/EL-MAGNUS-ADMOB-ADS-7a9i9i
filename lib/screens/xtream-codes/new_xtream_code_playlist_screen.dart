@@ -278,9 +278,47 @@ class NewXtreamCodePlaylistScreenState
         onPressed: controller.isLoading
             ? null
             : (_isFormValid ? _savePlaylist : null),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          disabledBackgroundColor: colorScheme.onSurface.withOpacity(0.12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: controller.isLoading ? 0 : 2,
+        ),
         child: controller.isLoading
-            ? const CircularProgressIndicator()
-            : Text(context.loc.submit_create_playlist),
+            ? Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  colorScheme.onPrimary,
+                ),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text(
+              context.loc.submitting,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ],
+        )
+            : Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.save, size: 20),
+            SizedBox(width: 8),
+            Text(
+              context.loc.submit_create_playlist,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 import 'package:ELMAGNUS/l10n/localization_extension.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' as admob;
 import 'package:provider/provider.dart';
+
 import 'package:ELMAGNUS/models/category_view_model.dart';
 import 'package:ELMAGNUS/utils/navigate_by_content_type.dart';
 import '../controllers/category_detail_controller.dart';
@@ -32,9 +35,41 @@ class _CategoryDetailView extends StatefulWidget {
 class _CategoryDetailViewState extends State<_CategoryDetailView> {
   final TextEditingController _searchController = TextEditingController();
 
+  // ===== AdMob =====
+  admob.BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    if (kIsWeb) return;
+
+    _bannerAd = admob.BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      size: admob.AdSize.banner,
+      request: const admob.AdRequest(),
+      listener: admob.BannerAdListener(
+        onAdLoaded: (_) {
+          if (!mounted) return;
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    _bannerAd!.load();
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -43,22 +78,38 @@ class _CategoryDetailViewState extends State<_CategoryDetailView> {
     return Consumer<CategoryDetailController>(
       builder: (context, controller, child) {
         return Scaffold(
-          body: NestedScrollView(
-            headerSliverBuilder: (context, innerBoxIsScrolled) => [
-              CategoryAppBar(
-                title: controller.category.category.categoryName,
-                isSearching: controller.isSearching,
-                searchController: _searchController,
-                onSearchStart: controller.startSearch,
-                onSearchStop: () {
-                  controller.stopSearch();
-                  _searchController.clear();
-                },
-                onSearchChanged: controller.searchContent,
-                onSortPressed: () => _showSortOptions(controller),
-              ),
-            ],
-            body: _buildBody(controller),
+          body: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: NestedScrollView(
+                    headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                      CategoryAppBar(
+                        title: controller.category.category.categoryName,
+                        isSearching: controller.isSearching,
+                        searchController: _searchController,
+                        onSearchStart: controller.startSearch,
+                        onSearchStop: () {
+                          controller.stopSearch();
+                          _searchController.clear();
+                        },
+                        onSearchChanged: controller.searchContent,
+                        onSortPressed: () => _showSortOptions(controller),
+                      ),
+                    ],
+                    body: _buildBody(controller),
+                  ),
+                ),
+
+                // ===== Banner Ad =====
+                if (_isBannerLoaded && _bannerAd != null)
+                  SizedBox(
+                    width: _bannerAd!.size.width.toDouble(),
+                    height: _bannerAd!.size.height.toDouble(),
+                    child: admob.AdWidget(ad: _bannerAd!),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -74,6 +125,7 @@ class _CategoryDetailViewState extends State<_CategoryDetailView> {
       );
     }
     if (controller.isEmpty) return const EmptyState();
+
     return Column(
       children: [
         if (controller.genres.isNotEmpty)
