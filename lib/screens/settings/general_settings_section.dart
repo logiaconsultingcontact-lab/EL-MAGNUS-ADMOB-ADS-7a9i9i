@@ -22,6 +22,7 @@ import '../m3u/m3u_data_loader_screen.dart';
 import '../playlist_screen.dart';
 import '../xtream-codes/xtream_code_data_loader_screen.dart';
 import 'category_settings_section.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final controller = XtreamCodeHomeController(true);
 
@@ -98,6 +99,16 @@ class _GeneralSettingsWidgetState extends State<GeneralSettingsWidget> {
     }
   }
 
+  /// 🔗 فتح الروابط الخارجية (Privacy / Disclaimer)
+  Future<void> _openUrl(BuildContext context, String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open link')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
@@ -106,6 +117,7 @@ class _GeneralSettingsWidgetState extends State<GeneralSettingsWidget> {
         : Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        /// ===== Appearance =====
         SectionTitleWidget(title: context.loc.appearance),
         Card(
           child: Column(
@@ -141,7 +153,10 @@ class _GeneralSettingsWidgetState extends State<GeneralSettingsWidget> {
             ],
           ),
         ),
+
         const SizedBox(height: 10),
+
+        /// ===== General Settings =====
         SectionTitleWidget(title: context.loc.general_settings),
         Card(
           child: Column(
@@ -233,10 +248,11 @@ class _GeneralSettingsWidgetState extends State<GeneralSettingsWidget> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => XtreamCodeDataLoaderScreen(
-                          playlist: AppState.currentPlaylist!,
-                          refreshAll: true,
-                        ),
+                        builder: (context) =>
+                            XtreamCodeDataLoaderScreen(
+                              playlist: AppState.currentPlaylist!,
+                              refreshAll: true,
+                            ),
                       ),
                     );
                   }
@@ -269,9 +285,45 @@ class _GeneralSettingsWidgetState extends State<GeneralSettingsWidget> {
             ],
           ),
         ),
+
+        const SizedBox(height: 10),
+
+        /// ===== Legal =====
+        SectionTitleWidget(title: 'Legal'),
+        Card(
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Privacy Policy'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  _openUrl(
+                    context,
+                    'https://logiaconsultingcontact-lab.github.io/elmagnus-legal/',
+                  );
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Disclaimer'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  _openUrl(
+                    context,
+                    'https://logiaconsultingcontact-lab.github.io/elmagnus-legal/#disclaimer',
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
+
+  // ===== بقية الكود كما هو بدون أي تغيير =====
 
   refreshM3uPlaylist() async {
     List<M3uItem> oldM3uItems = AppState.m3uItems!;
