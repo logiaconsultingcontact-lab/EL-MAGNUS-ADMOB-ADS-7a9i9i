@@ -56,7 +56,7 @@ class _EpisodeScreenState extends State<EpisodeScreen> {
     if (kIsWeb) return;
 
     _bannerAd = admob.BannerAd(
-      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test ID
+      adUnitId: 'ca-app-pub-9611779218616712/8387979950', // Test ID
       size: admob.AdSize.banner,
       request: const admob.AdRequest(),
       listener: admob.BannerAdListener(
